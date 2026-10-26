@@ -1,0 +1,36 @@
+# Store balloon data in separate lists (arrays) for 5 balloons
+x_pos = [100, 200, 300, 400, 500]
+y_pos = [500, 450, 550, 400, 600]
+sizes = [50, 60, 45, 70, 55]
+speeds = [2, 1.5, 3, 1, 2.5]
+colors = [color(255, 0, 0), color(0, 255, 0), color(0, 0, 255), color(255, 255, 0), color(255, 0, 255)]
+
+def setup():
+    # Set the canvas size
+    size(600, 600)
+
+def draw():
+    # Set background to light blue sky
+    background(200, 230, 255)
+    
+    # Loop through all 5 balloons
+    for i in range(5):
+        # Call the function to draw each balloon
+        draw_balloon(x_pos[i], y_pos[i], sizes[i], colors[i])
+        
+        # Float up animation (decrease Y position)
+        y_pos[i] -= speeds[i]
+        
+        # If the balloon goes above the screen, reset it to the bottom
+        if y_pos[i] < -sizes[i]:
+            y_pos[i] = height + sizes[i]
+
+def draw_balloon(x, y, s, c):
+    fill(c)
+    stroke(0)
+    
+    # Draw balloon body (width = s, height = s * 1.3)
+    ellipse(x, y, s, s * 1.3)
+    
+    # Draw balloon string
+    line(x, y + (s * 1.3) / 2, x, y + s * 1.5)

@@ -1,0 +1,106 @@
+# List to hold the state of each plus sign object
+plus_signs = []
+# Interaction radius (roughly how close to click to trigger)
+INTERACTION_RADIUS = 50 
+# Duration of the pop animation in frames (shorter = faster)
+POP_DURATION = 15 
+
+def setup():
+    size(800, 250)
+    rectMode(CENTER)
+    smooth()
+    
+    global plus_signs
+    # Initialize the 5 shapes and their starting states
+    for i in range(5):
+        # We store each shape as a dictionary to manage its lifecycle
+        sign_state = {
+            'x': 120 + i * 140, # Horizontal position
+            'y': height / 2,    # Vertically centered
+            'base_s': 30,       # Initial square size (Lab 3 base)
+            'current_s': 30,    # Size used for drawing (changes dynamically)
+            'active': True,     # True if visible, False if "popped"
+            'popping': False,   # True during the pop animation sequence
+            'pop_timer': 0,     # Frame counter for the pop animation
+            'draw_alpha': 255   # Current transparency (0-255)
+        }
+        plus_signs.append(sign_state)
+
+def draw():
+    background(200) # Gray background
+
+    global plus_signs
+
+    # Iterate through all shapes to update and draw them
+    for sign in plus_signs:
+        if not sign['active']:
+            continue # Skip shapes that have been completely popped
+
+        # --- UPDATE PHASE ---
+        d = dist(mouseX, mouseY, sign['x'], sign['y'])
+        
+        if sign['popping']:
+            # SIMPLE POP ANIMATION LOGIC: Rapid grow + fade
+            sign['pop_timer'] += 1
+            
+            # Use lerp to smoothly animate size and alpha over frames
+            # 1. Scale up rapidly (from hover size towards 3x base size)
+            target_pop_size = sign['base_s'] * 3
+            sign['current_s'] = lerp(sign['current_s'], target_pop_size, 0.4)
+            
+            # 2. Fade out rapidly (towards 0 opacity)
+            sign['draw_alpha'] = lerp(sign['draw_alpha'], 0, 0.3)
+            
+            # Check if animation is complete
+            if sign['pop_timer'] >= POP_DURATION or sign['draw_alpha'] < 5:
+                sign['active'] = False # Deactivate the shape permanently
+
+        else:
+            # ORIGINAL HOVER INTERACTION LOGIC (Only for non-popping active shapes)
+            # Make the shape grow slightly when mouse is near
+            sign['current_s'] = sign['base_s']
+            if d < 100:
+                sizeIncrease = map(d, 0, 100, 15, 0)
+                sign['current_s'] += sizeIncrease
+            # Reset properties for normal active state
+            sign['draw_alpha'] = 255
+
+        # --- DRAW PHASE ---
+        # Apply the final styling with dynamic transparency
+        # fill(gray_value, transparency)
+        fill(200, sign['draw_alpha'])
+        # stroke(gray_value, transparency)
+        stroke(120, sign['draw_alpha']) 
+        strokeWeight(1)
+        
+        # Call the Lab 3 function with updated position and final size
+        draw_positive(sign['x'], sign['y'], sign['current_s'])
+
+def mousePressed():
+    global plus_signs
+    # Check all active, non-popping shapes to see if one was clicked
+    for sign in plus_signs:
+        if sign['active'] and not sign['popping']:
+            # Simple distance-based click detection around the center
+            d = dist(mouseX, mouseY, sign['x'], sign['y'])
+            if d < INTERACTION_RADIUS:
+                # Trigger the pop animation for THIS specific shape
+                sign['popping'] = True
+                sign['pop_timer'] = 0
+                # Optionally, play a sound here if desired
+                break # Only pop one shape per click, even if overlaps occur
+
+# Function from "Lab 3" to draw the plus sign
+# (Kept original logic, but styled externally via draw() now)
+def draw_positive(x, y, s):
+    pushMatrix()
+    translate(x, y)
+    
+    # Draw the 5 squares that make up the plus sign relative to its center (0,0)
+    rect(0, 0, s, s)    # Center
+    rect(0, -s, s, s)   # Top
+    rect(0, s, s, s)    # Bottom
+    rect(-s, 0, s, s)   # Left
+    rect(s, 0, s, s)    # Right
+    
+    popMatrix()

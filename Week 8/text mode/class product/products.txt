@@ -1,0 +1,3 @@
+Mouse,250,50
+Keyboard,800,120
+Monitor,3500,20

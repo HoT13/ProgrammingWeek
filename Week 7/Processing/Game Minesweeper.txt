@@ -1,0 +1,126 @@
+import random
+
+GRID_SIZE = 8
+CELL_SIZE = 40
+NUM_MINES = 10
+
+grid = []
+revealed = []
+flagged = []
+game_over = False
+won = False
+
+def setup():
+    size(GRID_SIZE * CELL_SIZE, GRID_SIZE * CELL_SIZE + 40)
+    textAlign(CENTER, CENTER)
+    reset_game()
+
+def reset_game():
+    global grid, revealed, flagged, game_over, won
+    game_over = False
+    won = False
+    revealed = [[False for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
+    flagged = [[False for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
+    grid = [[0 for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
+    
+    # Place mines (-1)
+    placed = 0
+    while placed < NUM_MINES:
+        r = random.randint(0, GRID_SIZE - 1)
+        c = random.randint(0, GRID_SIZE - 1)
+        if grid[r][c] != -1:
+            grid[r][c] = -1
+            placed += 1
+
+    # Calculate numbers around mines
+    for r in range(GRID_SIZE):
+        for c in range(GRID_SIZE):
+            if grid[r][c] == -1:
+                continue
+            count = 0
+            for dr in [-1, 0, 1]:
+                for dc in [-1, 0, 1]:
+                    nr, nc = r + dr, c + dc
+                    if 0 <= nr < GRID_SIZE and 0 <= nc < GRID_SIZE and grid[nr][nc] == -1:
+                        count += 1
+            grid[r][c] = count
+
+def draw():
+    background(200)
+    textSize(16)
+    
+    for r in range(GRID_SIZE):
+        for c in range(GRID_SIZE):
+            x = c * CELL_SIZE
+            y = r * CELL_SIZE
+            stroke(100)
+            
+            if revealed[r][c]:
+                fill(230)
+                rect(x, y, CELL_SIZE, CELL_SIZE)
+                if grid[r][c] == -1:
+                    fill(255, 0, 0)
+                    ellipse(x + CELL_SIZE/2, y + CELL_SIZE/2, 20, 20)
+                elif grid[r][c] > 0:
+                    fill(0)
+                    text(str(grid[r][c]), x + CELL_SIZE/2, y + CELL_SIZE/2)
+            else:
+                fill(160)
+                rect(x, y, CELL_SIZE, CELL_SIZE)
+                if flagged[r][c]:
+                    fill(200, 0, 0)
+                    text("F", x + CELL_SIZE/2, y + CELL_SIZE/2)
+                    
+    # Bottom Status Bar
+    fill(0)
+    if game_over:
+        text("BOOM! Game Over (Click to restart)", width/2, height - 20)
+    elif won:
+        text("YOU WIN! (Click to restart)", width/2, height - 20)
+    else:
+        text("Left: Reveal | Right: Flag", width/2, height - 20)
+
+def reveal_cell(r, c):
+    if not (0 <= r < GRID_SIZE and 0 <= c < GRID_SIZE) or revealed[r][c] or flagged[r][c]:
+        return
+    revealed[r][c] = True
+    
+    if grid[r][c] == 0:
+        for dr in [-1, 0, 1]:
+            for dc in [-1, 0, 1]:
+                if dr != 0 or dc != 0:
+                    reveal_cell(r + dr, c + dc)
+
+def check_win():
+    count = 0
+    for r in range(GRID_SIZE):
+        for c in range(GRID_SIZE):
+            if revealed[r][c]:
+                count += 1
+    return count == (GRID_SIZE * GRID_SIZE - NUM_MINES)
+
+def mousePressed():
+    global game_over, won
+    if game_over or won:
+        reset_game()
+        return
+        
+    c = mouseX // CELL_SIZE
+    r = mouseY // CELL_SIZE
+    
+    if 0 <= r < GRID_SIZE and 0 <= c < GRID_SIZE:
+        if mouseButton == LEFT:
+            if not flagged[r][c]:
+                if grid[r][c] == -1:
+                    game_over = True
+                    for i in range(GRID_SIZE):
+                        for j in range(GRID_SIZE):
+                            if grid[i][j] == -1:
+                                revealed[i][j] = True
+                else:
+                    reveal_cell(r, c)
+                    if check_win():
+                        won = True
+        elif mouseButton == RIGHT:
+            if not revealed[r][c]:
+                flagged[r][c] = not flagged[r][c]

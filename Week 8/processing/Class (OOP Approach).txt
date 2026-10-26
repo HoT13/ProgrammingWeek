@@ -1,0 +1,45 @@
+class Balloon:
+    def __init__(self, x, y, size_val, speed_val, color_val):
+        # Initialize attributes for the balloon object
+        self.x = x
+        self.y = y
+        self.size = size_val
+        self.speed = speed_val
+        self.color = color_val
+        
+    def show(self):
+        # Draw the balloon body and string
+        fill(self.color)
+        stroke(0)
+        ellipse(self.x, self.y, self.size, self.size * 1.3)
+        line(self.x, self.y + (self.size * 1.3) / 2, self.x, self.y + self.size * 1.5)
+        
+    def float_up(self):
+        # Move the balloon upward
+        self.y -= self.speed
+        
+        # Reset position to the bottom if it goes off-screen
+        if self.y < -self.size:
+            self.y = height + self.size
+
+# Create an empty list to store Balloon objects
+balloons = []
+
+def setup():
+    size(600, 600)
+    
+    # Instantiate 5 Balloon objects and append them to the list
+    balloons.append(Balloon(100, 500, 50, 2, color(255, 0, 0)))
+    balloons.append(Balloon(200, 450, 60, 1.5, color(0, 255, 0)))
+    balloons.append(Balloon(300, 550, 45, 3, color(0, 0, 255)))
+    balloons.append(Balloon(400, 400, 70, 1, color(255, 255, 0)))
+    balloons.append(Balloon(500, 600, 55, 2.5, color(255, 0, 255)))
+
+def draw():
+    # Clear background every frame
+    background(200, 230, 255)
+    
+    # Iterate through the objects and call their methods
+    for b in balloons:
+        b.show()
+        b.float_up()

@@ -1,0 +1,3 @@
+1001,Alice,Computer Science,20
+1002,Bobby,Engineering,18
+1003,Charlie,Mathematics,22
